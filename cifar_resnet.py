@@ -175,7 +175,7 @@ def train(model, device, train_loader, optimizer, epoch):
             # import ipdb; ipdb.set_trace()
             grad_val = param.grad.data.to("cpu")
             temp_mod = do_something_grad(grad_val, layer_count)
-            param.grad.data = temp_mod
+            param.grad.data = temp_mod.to(device)
 
         optimizer.step()
         if batch_idx % 20 == 0:
