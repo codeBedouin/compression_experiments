@@ -15,7 +15,7 @@ from collections import defaultdict
 metrics_dict = defaultdict(list)
 compression_dict = defaultdict(list)
 percentage_of_layers = 0.4
-
+number_of_decimal = 5
 def generate_mask_array(array_len):
     num_ones = int(array_len * percentage_of_layers)
     num_zeros = array_len - num_ones
@@ -118,11 +118,13 @@ class ResNet(nn.Module):
 
 
 def compress_grad_single(giant_numpy_array):
+    global metrics_dict 
     print ("Giant array {}".format(giant_numpy_array.shape))
-    giant_numpy_array = np.round(giant_numpy_array, decimals=5)
+    giant_numpy_array = np.round(giant_numpy_array, decimals=number_of_decimal)
     giant_string = giant_numpy_array.tostring()
     giant_string_compressed = zlib.compress(giant_string, level=9)
     compression_ratio = len(giant_string)/float(len(giant_string_compressed))
+    metrics_dict['compression_giant_array'].append(compression_ratio)
     print ("Compression Ratio giant string {}".format(compression_ratio))
 
 def do_something_grad(grad_data, layer_count):
@@ -130,7 +132,7 @@ def do_something_grad(grad_data, layer_count):
     print (grad_data.shape)
     grad_data_raster = grad_data.view(-1)
     grad_data_numpy = grad_data_raster.numpy()
-    grad_data_numpy = np.round(grad_data_numpy, decimals=5)
+    grad_data_numpy = np.round(grad_data_numpy, decimals=number_of_decimal)
     grad_data_string = grad_data_numpy.tostring()
     grad_data_compressed = zlib.compress(grad_data_string, level=9)
     compression_ratio = len(grad_data_string)/float(len(grad_data_compressed))
@@ -151,6 +153,7 @@ def train(model, device, train_loader, optimizer, epoch):
         optimizer.zero_grad()
         output = model(data)
         loss = F.nll_loss(output, target)
+        metrics_dict['loss'].append(loss)
         loss.backward()
         temp_array = np.random.randint(0, high=2, size=10)
         
@@ -226,7 +229,7 @@ def main():
         metrics_dict["Time per epoch"].append(toc-tic)
         test(model, device, test_loader)
 
-    with open("./40pc_20_step_resnets_stats.json", 'w') as f:
+    with open("./5digit_bninc_resnet_stats.json", 'w') as f:
         json.dump(metrics_dict, f, indent=4)
 
 if __name__ == '__main__':
