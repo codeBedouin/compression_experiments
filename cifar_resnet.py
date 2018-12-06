@@ -163,7 +163,7 @@ def train(model, device, train_loader, optimizer, epoch):
         # import ipdb; ipdb.set_trace()
         layer_count = 0
         single_list = list()
-        for name,param in model.parameters():
+        for name,param in model.named_parameters():
             if 'bn' in name:
                 # it's a batch norm layer
                 continue
@@ -175,7 +175,7 @@ def train(model, device, train_loader, optimizer, epoch):
         final_numpy_array = np.concatenate(single_list, axis=None)
         compress_grad_single(final_numpy_array)
         
-        for name,param in model.parameters():
+        for name,param in model.named_parameters():
             # import ipdb; ipdb.set_trace()
             if 'bn' in name:
                 # it's a batch norm layer leave it alone
