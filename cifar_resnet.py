@@ -160,7 +160,7 @@ def train(model, device, train_loader, optimizer, epoch):
         # import ipdb; ipdb.set_trace()
         layer_count = 0
         single_list = list()
-        for named, param in model.parameters():
+        for param in model.parameters():
             grad_val = param.grad.data.to(device)
             grad_val = grad_val.view(-1)
             grad_val = grad_val.to(device).numpy()
