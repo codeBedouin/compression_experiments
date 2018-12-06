@@ -164,13 +164,21 @@ def do_something_grad(grad_data, layer_count):
     grad_data_string = grad_data_numpy.tostring()
     grad_data_compressed = zlib.compress(grad_data_string, level=9)
     compression_ratio = len(grad_data_string)/float(len(grad_data_compressed))
-    print ("Compression Ratio {}".format(compression_ratio))
+    print ("Compression Ratio one by one{}".format(compression_ratio))
     grad_data_uncompressed = zlib.decompress(grad_data_compressed)
     grad_data_numpy_unc  = np.frombuffer(grad_data_uncompressed, dtype=np.float32)
     grad_tensor = torch.from_numpy(grad_data_numpy_unc)
     grad_tensor = grad_tensor.reshape(grad_data.shape)
     grad_tensor = grad_tensor.float()
     return (grad_tensor)
+
+def compress_grad_single(giant_numpy_array):
+    print ("Giant array {}".format(giant_numpy_array.shape))
+    giant_numpy_array = np.round(giant_numpy_array, decimals=5)
+    giant_string = giant_numpy_array.tostring()
+    giant_string_compressed = zlib.compress(giant_string, level=9)
+    compression_ratio = len(giant_string)/float(len(giant_string_compressed))
+    print ("Compression Ratio giant string {}".format(compression_ratio))
 
 def train(train_loader, model, criterion, optimizer, epoch):
     batch_time = AverageMeter()
@@ -196,6 +204,16 @@ def train(train_loader, model, criterion, optimizer, epoch):
         optimizer.zero_grad()
         loss.backward()
         layer_count = 0
+        single_list = list()
+        # import ipdb; ipdb.set_trace()
+        for param in model.parameters():
+            grad_val = param.grad.data
+            grad_val = grad_val.view(-1)
+            grad_val = grad_val.numpy()
+            single_list.append(grad_val)
+        final_numpy_array = np.concatenate(single_list, axis=None)
+        compress_grad_single(final_numpy_array)
+        
         for param in model.parameters():
             # import ipdb; ipdb.set_trace()
             temp_mod = do_something_grad(param.grad.data, layer_count)

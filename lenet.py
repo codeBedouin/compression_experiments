@@ -39,7 +39,7 @@ def return_compress(grad_data, layer_count):
     # import ipdb; ipdb.set_trace()
     global metrics_dict
     global compression_dict
-    compression_precision = 1
+    compression_precision = 7
     grad_data_raster = grad_data.view(-1)
     grad_data_numpy = grad_data_raster.numpy()
     grad_data_list = grad_data_numpy.tolist()
@@ -74,6 +74,7 @@ def train(model, device, train_loader, optimizer, epoch):
         layer_count = 0
         for param in model.parameters():
             temp_mod = return_compress(param.grad.data, layer_count)
+            import ipdb; ipdb.set_trace() 
             param.grad.data = temp_mod
             layer_count += 1
         # import ipdb; ipdb.set_trace()
@@ -135,10 +136,10 @@ def main():
         test(model, device, test_loader)
         # import ipdb; ipdb.set_trace()
 
-    with open("./1_bit_stats.json", 'w') as f:
+    with open("./7_bit_stats.json", 'w') as f:
         json.dump(metrics_dict, f, indent=4)
 
-    with open("./1_bit_compression.json", 'w') as f:
+    with open("./7_bit_compression.json", 'w') as f:
         json.dump(compression_dict,  f, indent=4)
 
     
