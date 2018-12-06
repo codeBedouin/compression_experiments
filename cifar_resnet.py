@@ -131,14 +131,14 @@ def compress_grad_single(giant_numpy_array):
 
 def do_something_grad(grad_data, layer_count):
     # import ipdb; ipdb.set_trace()
-    print (grad_data.shape)
+    # print (grad_data.shape)
     grad_data_raster = grad_data.view(-1)
     grad_data_numpy = grad_data_raster.numpy()
     grad_data_numpy = np.round(grad_data_numpy, decimals=number_of_decimal)
     grad_data_string = grad_data_numpy.tostring()
     grad_data_compressed = zlib.compress(grad_data_string, level=9)
     compression_ratio = len(grad_data_string)/float(len(grad_data_compressed))
-    print ("Compression Ratio one by one{}".format(compression_ratio))
+    # print ("Compression Ratio one by one{}".format(compression_ratio))
     grad_data_uncompressed = zlib.decompress(grad_data_compressed)
     grad_data_numpy_unc  = np.frombuffer(grad_data_uncompressed, dtype=np.float32)
     grad_tensor = torch.from_numpy(grad_data_numpy_unc)
