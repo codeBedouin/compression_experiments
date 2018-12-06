@@ -31,12 +31,12 @@ class BasicBlock(nn.Module):
 
     def __init__(self, in_planes, planes, stride=1):
         super(BasicBlock, self).__init__()
-        num_filter = int(planes/16)
-        self.conv1 = nn.ModuleList([
-            nn.Conv2d(in_planes, 16, kernel_size=3, stride=stride, padding=1, bias=False) for i in range(num_filter)])
+        # num_filter = int(planes/16)
+        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1,
+                      bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.ModuleList([
-            nn.Conv2d(planes, 16, kernel_size=3, stride=1, padding=1, bias=False) for i in range(num_filter)])
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1,
+                               padding=1, bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
 
         self.shortcut = nn.Sequential()
@@ -47,11 +47,12 @@ class BasicBlock(nn.Module):
             )
 
     def forward(self, x):
-        out = [b(x) for b in self.conv1]
-        out = torch.cat(out, dim=1)
+        out = self.conv1(x)
+        #out = torch.cat(out, dim=1)
         out = F.relu(self.bn1(out))
-        out = [b(out) for b in self.conv2]
-        out = torch.cat(out, dim=1)
+        #out = [b(out) for b in self.conv2]
+        out = self.conv2(out)
+        # out = torch.cat(out, dim=1)
         out = self.bn2(out)
         out += self.shortcut(x)
         out = F.relu(out)
@@ -162,7 +163,10 @@ def train(model, device, train_loader, optimizer, epoch):
         # import ipdb; ipdb.set_trace()
         layer_count = 0
         single_list = list()
-        for param in model.parameters():
+        for name,param in model.parameters():
+            if 'bn' in name:
+                # it's a batch norm layer
+                continue
             grad_val = param.grad.data
             grad_val = grad_val.view(-1)
             grad_val = grad_val.to("cpu").numpy()
@@ -171,8 +175,11 @@ def train(model, device, train_loader, optimizer, epoch):
         final_numpy_array = np.concatenate(single_list, axis=None)
         compress_grad_single(final_numpy_array)
         
-        for param in model.parameters():
+        for name,param in model.parameters():
             # import ipdb; ipdb.set_trace()
+            if 'bn' in name:
+                # it's a batch norm layer leave it alone
+                continue
             grad_val = param.grad.data.to("cpu")
             temp_mod = do_something_grad(grad_val, layer_count)
             param.grad.data = temp_mod.to(device)
