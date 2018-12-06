@@ -164,13 +164,15 @@ def train(model, device, train_loader, optimizer, epoch):
             grad_val = param.grad.data
             grad_val = grad_val.view(-1)
             grad_val = grad_val.to("cpu").numpy()
+            single_list.append(grad_val)
         # import ipdb; ipdb.set_trace()
         final_numpy_array = np.concatenate(single_list, axis=None)
+        compress_grad_single(final_numpy_array)
         
         for param in model.parameters():
             # import ipdb; ipdb.set_trace()
             grad_val = param.grad.data.to("cpu")
-            temp_mod = do_something_grad(param.grad.data, layer_count)
+            temp_mod = do_something_grad(grad_val, layer_count)
             param.grad.data = temp_mod
 
         optimizer.step()
