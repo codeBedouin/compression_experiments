@@ -158,15 +158,13 @@ def train(model, device, train_loader, optimizer, epoch):
         loss = F.nll_loss(output, target)
         metrics_dict['loss'].append(loss)
         loss.backward()
-        temp_array = np.random.randint(0, high=2, size=10)
-        
         # import ipdb; ipdb.set_trace()
         layer_count = 0
         single_list = list()
         for name,param in model.named_parameters():
-            if 'bn' in name:
-                # it's a batch norm layer
-                continue
+            # if 'bn' in name:
+                # # it's a batch norm layer
+                # continue
             grad_val = param.grad.data
             grad_val = grad_val.view(-1)
             grad_val = grad_val.to("cpu").numpy()
@@ -174,12 +172,15 @@ def train(model, device, train_loader, optimizer, epoch):
         # import ipdb; ipdb.set_trace()
         final_numpy_array = np.concatenate(single_list, axis=None)
         compress_grad_single(final_numpy_array)
+        # freeing some memory
+        del final_numpy_array
+        del single_list
         
         for name,param in model.named_parameters():
             # import ipdb; ipdb.set_trace()
-            if 'bn' in name:
-                # it's a batch norm layer leave it alone
-                continue
+            # if 'bn' in name:
+                # # it's a batch norm layer leave it alone
+                # continue
             grad_val = param.grad.data.to("cpu")
             temp_mod = do_something_grad(grad_val, layer_count)
             param.grad.data = temp_mod.to(device)
