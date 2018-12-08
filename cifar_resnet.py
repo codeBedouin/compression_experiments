@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+import gc
 import zlib
 import json
 import torch
@@ -175,7 +175,7 @@ def train(model, device, train_loader, optimizer, epoch):
         # freeing some memory
         del final_numpy_array
         del single_list
-        
+        gc.collect() 
         for name,param in model.named_parameters():
             # import ipdb; ipdb.set_trace()
             # if 'bn' in name:
@@ -184,7 +184,10 @@ def train(model, device, train_loader, optimizer, epoch):
             grad_val = param.grad.data.to("cpu")
             temp_mod = do_something_grad(grad_val, layer_count)
             param.grad.data = temp_mod.to(device)
-
+        del grad_val
+        del param
+        del temp_mod
+        gc.collect()
         optimizer.step()
         if batch_idx % 20 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
